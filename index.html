@@ -1869,6 +1869,8 @@ function startAnimation() {
       <svg class="sp-fan" viewBox="0 0 200 200" aria-hidden="true">
         <path class="sp-haus" d="${gehaeuse}" fill="#eef2f7" stroke="#0e3157" stroke-width="4" stroke-linejoin="round"/>
         <circle cx="100" cy="100" r="57" fill="#fff" stroke="#e4007c" stroke-width="3"/>
+        <g class="sp-ghost" fill="none" stroke="#0e3157" stroke-width="4.5" stroke-linecap="round" opacity="0">${schaufeln}</g>
+        <g class="sp-ghost" fill="none" stroke="#0e3157" stroke-width="4.5" stroke-linecap="round" opacity="0">${schaufeln}</g>
         <g class="sp-imp" fill="none" stroke="#0e3157" stroke-width="4.5" stroke-linecap="round">
           <circle cx="100" cy="100" r="51" stroke-width="3"/>${schaufeln}
           <circle cx="100" cy="100" r="14" fill="#e4007c" stroke="none"/><circle cx="100" cy="100" r="5" fill="#fff" stroke="none"/>
@@ -1880,34 +1882,49 @@ function startAnimation() {
     <div class="sp-name">Service-<span>Werkzeugkasten</span></div>`;
   document.body.appendChild(s);
 
-  const imp = s.querySelector('.sp-imp'), fan = s.querySelector('.sp-fan'), haus = s.querySelector('.sp-haus'), sym = s.querySelector('.sp-sym');
-  // Drehzahl-Verlauf: hochlaufen (A), volle Drehzahl (bis B), auslaufen (D) – Laufrad und „G“ drehen im Gleichlauf
-  const W = 1440, A = 1.3, B = 2.0, D = 1.9, T = B + D;
-  const winkel = t => t < A ? W * t * t / (2 * A)
-    : t < B ? W * A / 2 + W * (t - A)
-    : W * A / 2 + W * (B - A) + W * (Math.min(t, T) - B - Math.pow(Math.min(t, T) - B, 2) / (2 * D));
+  const imp = s.querySelector('.sp-imp'), ghosts = [...s.querySelectorAll('.sp-ghost')];
+  const fan = s.querySelector('.sp-fan'), haus = s.querySelector('.sp-haus'), sym = s.querySelector('.sp-sym');
+  // Drehzahl-Verlauf in °/s: hochlaufen (bis A), volle Drehzahl (bis B), sanft auslaufen über D Sekunden.
+  // Laufrad und „G“ drehen im Gleichlauf; das G kommt am Ende genau in Logo-Lage zum Stehen.
+  const W = 900, A = 1.5, B = 2.3, D = 2.8, T = B + D;
+  const winkel = t => {
+    if (t < A) return W * t * t / (2 * A);
+    if (t < B) return W * A / 2 + W * (t - A);
+    const u = Math.min(t, T) - B;
+    return W * A / 2 + W * (B - A) + W * (u - u * u / (2 * D));
+  };
+  const tempo = t => t < A ? W * t / A : t < B ? W : Math.max(0, W * (1 - (t - B) / D));
   const ENDE = winkel(T);
-  const fade = (t, von, bis) => Math.min(1, Math.max(0, (t - von) / (bis - von)));
-  const weich = x => x * x * (3 - 2 * x);
+  const anteil = (t, von, bis) => Math.min(1, Math.max(0, (t - von) / (bis - von)));
+  const weich = x => x * x * x * (x * (6 * x - 15) + 10);   // sehr weicher Übergang (Smootherstep)
+  // Laufrad-Durchmesser ≈ 57 % der Logo-Höhe, G-Ringe ≈ 99 % → das G wächst aus dem Laufrad heraus
+  const G_START = 0.58, LAUFRAD_ENDE = 1 / G_START;
   const t0 = performance.now();
   let laeuft = true;
   const bild = now => {
     if (!laeuft) return;
-    const t = (now - t0) / 1000, w = winkel(t);
-    imp.setAttribute('transform', `rotate(${w.toFixed(2)} 100 100)`);
-    sym.style.transform = `rotate(${(w - ENDE).toFixed(2)}deg)`;
-    const u = weich(fade(t, 2.1, 3.4));          // Übergang Laufrad → G
-    sym.style.opacity = u;
+    const t = (now - t0) / 1000, w = winkel(t), v = tempo(t);
+    const u = weich(anteil(t, 2.6, 4.6));                     // Verwandlung Laufrad → G
+    const k = 1 + (LAUFRAD_ENDE - 1) * u;                     // Laufrad weitet sich
+    const lage = grad => `translate(100 100) scale(${k.toFixed(3)}) rotate(${grad.toFixed(2)}) translate(-100 -100)`;
+    imp.setAttribute('transform', lage(w));
+    // Bewegungsschleier: nachlaufende, blasse Schaufeln – je schneller, desto deutlicher
+    ghosts.forEach((g, i) => {
+      g.setAttribute('transform', lage(w - v * 0.012 * (i + 1)));
+      g.setAttribute('opacity', (0.28 * (v / W) / (i + 1)).toFixed(3));
+    });
     fan.style.opacity = 1 - u;
-    haus.style.opacity = 1 - weich(fade(t, 1.6, 2.6));
+    haus.style.opacity = 1 - weich(anteil(t, 1.9, 3.0));
+    sym.style.opacity = u;
+    sym.style.transform = `rotate(${(w - ENDE).toFixed(2)}deg) scale(${(G_START + (1 - G_START) * u).toFixed(3)})`;
     if (t < T + 0.1) requestAnimationFrame(bild);
   };
   requestAnimationFrame(bild);
 
   const zeiten = [
-    setTimeout(() => s.classList.add('gleiten'), 3600), // G gleitet an seinen Platz
-    setTimeout(() => s.classList.add('schrift'), 4100), // Schriftzug wischt herein
-    setTimeout(() => weg(), 6200),
+    setTimeout(() => s.classList.add('gleiten'), 5300), // G gleitet an seinen Platz
+    setTimeout(() => s.classList.add('schrift'), 5800), // Schriftzug wischt herein
+    setTimeout(() => weg(), 7900),
   ];
   function weg() {
     laeuft = false; zeiten.forEach(clearTimeout);
