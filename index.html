@@ -41,6 +41,65 @@
   nav.main a { color: #fff; text-decoration: none; text-transform: uppercase; font-size: 14px; font-weight: 600; letter-spacing: .02em; padding: 8px 12px; border-radius: 6px; white-space: nowrap; border-bottom: 3px solid transparent; }
   nav.main a:hover { background: var(--navy-2); }
   nav.main a.active { border-bottom-color: var(--pink); }
+  .nav-burger { display: none; }
+
+  /* Startseite */
+  .hero { background: var(--navy); color: #fff; border-radius: 14px; padding: 18px 18px 16px; margin-bottom: 18px; position: relative; overflow: hidden; }
+  .hero::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--pink); }
+  .hero-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .hero-gruss { font-size: 24px; font-weight: 800; letter-spacing: -.01em; }
+  .hero-datum { opacity: .75; font-size: 14px; margin-top: 2px; }
+  .fan { width: 64px; height: 64px; flex: none; }
+  .fan .blades { transform-box: fill-box; transform-origin: center; animation: spin 5s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hero-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; }
+  .hs { display: block; text-decoration: none; color: #fff; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .12); border-radius: 10px; padding: 10px 12px; }
+  .hs:hover { background: rgba(255, 255, 255, .14); }
+  .hs b { display: block; font-size: 28px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .hs span { font-size: 13px; opacity: .85; font-weight: 600; }
+  .hs small { display: block; font-size: 11px; opacity: .7; margin-top: 2px; }
+  .hs.bad { background: rgba(228, 0, 124, .22); border-color: rgba(228, 0, 124, .5); }
+  .sec-h { margin: 6px 0 12px; }
+  .recent h3 { margin-bottom: 6px; }
+  .rc { display: flex; align-items: center; gap: 12px; padding: 10px 2px; border-bottom: 1px solid var(--line); text-decoration: none; color: inherit; }
+  .rc:last-child { border-bottom: 0; }
+  .rc-ic { font-size: 22px; }
+  .rc-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .rc-t b { color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rc-t small { color: var(--muted); }
+  .rc-go { color: var(--pink); font-size: 24px; font-weight: 700; }
+  .share-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+
+  /* Diktat-Mikrofon in Textfeldern */
+  .ta-wrap { position: relative; display: block; }
+  .ta-wrap textarea { padding-right: 46px; }
+  .mic { position: absolute; right: 6px; bottom: 8px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: #fff; cursor: pointer; font-size: 17px; line-height: 1; padding: 0; }
+  .mic:hover { border-color: var(--pink); }
+  .mic.rec { background: var(--bad); border-color: var(--bad); animation: puls 1s ease-out infinite; }
+  @keyframes puls { from { box-shadow: 0 0 0 0 rgba(198, 40, 40, .55); } to { box-shadow: 0 0 0 14px rgba(198, 40, 40, 0); } }
+
+  /* App teilen */
+  .share-box { text-align: center; }
+  .share-box h3 { margin-bottom: 4px; }
+  .qr-wrap canvas { width: 100%; max-width: 260px; height: auto; display: block; margin: 8px auto; border-radius: 8px; }
+  .share-url { font-size: 13px; color: var(--muted); word-break: break-all; margin-bottom: 14px; }
+  .share-box .row { justify-content: center; }
+  @media (prefers-reduced-motion: reduce) { .fan .blades, .mic.rec { animation: none; } }
+
+  /* Handy-Menü */
+  #menu-sheet { position: fixed; inset: 0; z-index: 80; background: rgba(8, 20, 35, 0); transition: background .2s; }
+  #menu-sheet.open { background: rgba(8, 20, 35, .55); }
+  .ms-box { background: var(--navy); color: #fff; padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 18px; border-radius: 0 0 18px 18px;
+    transform: translateY(-100%); transition: transform .25s cubic-bezier(.2, .8, .2, 1); box-shadow: 0 12px 40px rgba(0, 0, 0, .35); }
+  #menu-sheet.open .ms-box { transform: none; }
+  .ms-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; text-transform: uppercase; letter-spacing: .06em; font-size: 14px; }
+  .ms-close { background: none; border: 0; color: #fff; font-size: 22px; padding: 4px 8px; cursor: pointer; }
+  .ms-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .ms-grid a { min-width: 0; overflow-wrap: anywhere; line-height: 1.25; display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font-weight: 600; font-size: 15px; padding: 14px 12px;
+    background: rgba(255, 255, 255, .07); border-radius: 10px; border: 1px solid rgba(255, 255, 255, .1); }
+  .ms-grid a span { font-size: 22px; }
+  .ms-grid a.active { background: var(--pink); border-color: var(--pink); }
+  @media (prefers-reduced-motion: reduce) { .ms-box, #menu-sheet { transition: none; } }
 
   main { max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
   h1 { font-size: 24px; margin: 4px 0 4px; color: var(--navy); }
@@ -143,7 +202,32 @@
   pre.raw { background: #0e2238; color: #dfe8f3; padding: 12px; border-radius: 8px; max-height: 360px; overflow: auto; font-size: 12px; white-space: pre-wrap; }
 
   @media (max-width: 720px) {
-    header.top img { height: 36px; }
+    header.top { padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 4px; flex-wrap: nowrap; }
+    header.top img { height: 34px; }
+    header.top .app-name { display: none; }
+    nav.main { clip-path: polygon(0 22%, 30% 0, 100% 18%, 100% 100%, 0 100%); padding: 16px 12px 8px; }
+    nav.main .inner a { display: none; }
+    .nav-burger { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; background: none; border: 0; color: #fff; font: inherit; cursor: pointer; padding: 4px 2px; }
+    .nb-cur { font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .nb-btn { flex: none; background: var(--pink); border-radius: 8px; padding: 7px 12px; font-weight: 700; font-size: 14px; }
+    main { padding: 16px 14px calc(40px + env(safe-area-inset-bottom, 0px)); }
+    h1 { font-size: 22px; }
+    /* iPhone zoomt bei Schrift unter 16px in Eingabefeldern – das verhindern */
+    input, select, textarea, .m-meta input, .m-meta select, .z-edit input, .teil input { font-size: 16px; }
+    .toolbar > .row { width: 100%; }
+    .toolbar > .row .btn { flex: 1 1 auto; justify-content: center; }
+    .hero { padding: 16px 14px 14px; }
+    .hero-gruss { font-size: 21px; }
+    .fan { width: 52px; height: 52px; }
+    .hero-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .hs b { font-size: 24px; }
+    .share-row .btn { flex: 1 1 auto; justify-content: center; }
+    .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .tile { min-width: 0; overflow-wrap: anywhere; }
+    .hero-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .tile { padding: 12px; }
+    .tile b { font-size: 15px; }
+    .tile small { font-size: 12px; }
     .teil { flex-wrap: wrap; }
     .teil .t-main { flex-basis: calc(100% - 40px); }
     .teil .moves { margin-left: auto; }
@@ -245,7 +329,10 @@ function load() {
   catch (e) { return { hygiene: [], aufnahme: [], zugaenge: [], maengel: [] }; }
 }
 function saveLocal() { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {} }
-function save() { saveLocal(); scheduleSync(); }
+function save() {
+  if (cur.rec) cur.rec._t = Date.now(); // für „Zuletzt bearbeitet“
+  saveLocal(); scheduleSync();
+}
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -300,9 +387,28 @@ const MENU = [
   ['maengel', 'Restmängel'],
   ['aufnahme', 'Anlagenaufnahme'],
 ];
+const ICONS = { start: '🏠', volumen: '🌀', zugaenge: '🔑', dichtheit: '📏', hygiene: '🧫', pdf: '📎', maengel: '✅', aufnahme: '📋' };
 function renderNav(cur) {
-  $('#nav').innerHTML = MENU.map(([k, l]) => `<a href="#${k}" class="${k === cur ? 'active' : ''}">${l}</a>`).join('');
+  const aktiv = (MENU.find(([k]) => k === cur) || MENU[0]);
+  $('#nav').innerHTML = MENU.map(([k, l]) => `<a href="#${k}" class="${k === cur ? 'active' : ''}">${l}</a>`).join('')
+    + `<button class="nav-burger" data-act="menuOpen" aria-label="Menü öffnen">
+        <span class="nb-cur">${ICONS[aktiv[0]]} ${aktiv[1]}</span><span class="nb-btn">☰ Menü</span></button>`;
+  menuClose();
 }
+// Handy: Menü als Kachel-Auswahl von oben
+function menuOpen() {
+  const cur = (location.hash.slice(1) || 'start').split('/')[0];
+  const m = document.createElement('div');
+  m.id = 'menu-sheet';
+  m.innerHTML = `<div class="ms-box" role="dialog" aria-label="Menü">
+      <div class="ms-head"><b>Menü</b><button class="ms-close" data-act="menuClose" aria-label="Menü schließen">✕</button></div>
+      <div class="ms-grid">${MENU.map(([k, l]) => `<a href="#${k}" class="${k === cur ? 'active' : ''}"><span>${ICONS[k]}</span>${l}</a>`).join('')}</div>
+    </div>`;
+  m.addEventListener('click', e => { if (e.target === m) menuClose(); });
+  document.body.appendChild(m);
+  requestAnimationFrame(() => m.classList.add('open'));
+}
+function menuClose() { const m = $('#menu-sheet'); if (m) m.remove(); }
 
 /* ---------- Formular-Bausteine ---------- */
 // Feld: {k, l, t, o, wide}
@@ -311,7 +417,7 @@ function fields(schema, obj, prefix) {
     const p = prefix + f.k, v = getPath(obj, f.k) ?? '';
     let inp;
     if (f.t === 'select') inp = `<select data-p="${p}">${f.o.map(o => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
-    else if (f.t === 'textarea') inp = `<textarea data-p="${p}" placeholder="${esc(f.ph || '')}">${esc(v)}</textarea>`;
+    else if (f.t === 'textarea') inp = `<span class="ta-wrap"><textarea data-p="${p}" placeholder="${esc(f.ph || '')}">${esc(v)}</textarea>${mic(`[data-p="${p}"]`)}</span>`;
     else inp = `<input data-p="${p}" type="${f.t === 'date' ? 'date' : f.t === 'tel' ? 'tel' : 'text'}" ${f.t === 'num' ? 'inputmode="decimal"' : ''} value="${esc(v)}" placeholder="${esc(f.ph || '')}">`;
     return `<label class="f ${f.wide || f.t === 'textarea' ? 'wide' : ''}">${esc(f.l)}${inp}</label>`;
   }).join('');
@@ -411,11 +517,143 @@ const CFG = {
   },
 };
 
+/* ---------- Startseite: Begrüßung, Kennzahlen, zuletzt bearbeitet ---------- */
+const FAN_SVG = `<svg viewBox="0 0 100 100" class="fan" aria-hidden="true">
+  <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="3"/>
+  <g class="blades" fill="rgba(255,255,255,.92)">
+    ${[0, 72, 144, 216, 288].map(a => `<path transform="rotate(${a} 50 50)" d="M50 50 C 41 36, 42 15, 55 8 C 63 18, 61 37, 50 50 Z"/>`).join('')}
+  </g>
+  <circle cx="50" cy="50" r="8" fill="#e4007c"/></svg>`;
+
+function startHero() {
+  const h = new Date().getHours();
+  const gruss = h < 11 ? 'Guten Morgen' : h < 18 ? 'Guten Tag' : 'Guten Abend';
+  const datum = new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const off = db.maengel.reduce((s, r) => { const c = mCounts(r); s.o += c.offen; s.h += c.hoch; return s; }, { o: 0, h: 0 });
+  const kz = [
+    ['maengel', off.o, 'offene Restmängel', off.h ? `davon ${off.h} mit hoher Priorität` : 'nichts Dringendes', off.h ? 'bad' : ''],
+    ['maengel', db.maengel.length, 'Baustellen', '', ''],
+    ['hygiene', db.hygiene.length, 'Hygiene-Aufnahmen', '', ''],
+    ['aufnahme', db.aufnahme.length, 'Anlagenaufnahmen', '', ''],
+  ];
+  return `<section class="hero">
+      <div class="hero-top">
+        <div><div class="hero-gruss">${gruss}!</div><div class="hero-datum">${datum}</div></div>
+        ${FAN_SVG}
+      </div>
+      <div class="hero-stats">${kz.map(([k, n, l, s, cls]) =>
+        `<a class="hs ${cls}" href="#${k}"><b data-count="${n}">${n}</b><span>${l}</span>${s ? `<small>${s}</small>` : ''}</a>`).join('')}</div>
+    </section>${recentHTML()}`;
+}
+const vorZeit = t => {
+  const m = Math.round((Date.now() - t) / 60000);
+  if (m < 1) return 'gerade eben';
+  if (m < 60) return `vor ${m} Min.`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `vor ${h} Std.`;
+  const d = Math.round(h / 24);
+  return d === 1 ? 'gestern' : `vor ${d} Tagen`;
+};
+function recentHTML() {
+  const all = [];
+  for (const k of ['maengel', 'hygiene', 'aufnahme']) for (const r of db[k]) if (r._t) all.push({ k, r });
+  const list = all.sort((a, b) => b.r._t - a.r._t).slice(0, 4);
+  if (!list.length) return '';
+  const name = ({ k, r }) => k === 'aufnahme' ? (r.kunde.name || 'Ohne Kundennamen')
+    : ([r.nr, r.projekt || r.kunde.name].filter(Boolean).join(' · ') || 'Ohne Bezeichnung');
+  const label = k => (MENU.find(([m]) => m === k) || [k, k])[1];
+  return `<div class="card recent"><h3>Zuletzt bearbeitet</h3>${list.map(x => `
+    <a class="rc" href="#${x.k}/${x.r.id}"><span class="rc-ic">${ICONS[x.k]}</span>
+      <span class="rc-t"><b>${esc(name(x))}</b><small>${label(x.k)} · ${vorZeit(x.r._t)}</small></span><span class="rc-go">›</span></a>`).join('')}</div>`;
+}
+// Zahlen kurz hochzählen lassen
+function zaehlen() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  document.querySelectorAll('[data-count]').forEach(el => {
+    const n = +el.dataset.count;
+    if (!n) return;
+    const t0 = performance.now();
+    const step = t => { const p = Math.min(1, (t - t0) / 700); el.textContent = Math.round(n * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(step); };
+    el.textContent = '0';
+    requestAnimationFrame(step);
+    setTimeout(() => { el.textContent = n; }, 900); // falls die Animation im Hintergrund pausiert
+  });
+}
+
+/* ---------- App teilen (QR-Code) und installieren ---------- */
+const QR_LIB = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
+let installPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; if (cur.page === 'start') safeRerender(); });
+async function appInstallieren() {
+  if (!installPrompt) return;
+  installPrompt.prompt();
+  await installPrompt.userChoice;
+  installPrompt = null; rerender();
+}
+function drawQr(cv, text) {
+  const qr = qrcode(0, 'H');
+  qr.addData(text); qr.make();
+  const n = qr.getModuleCount(), cell = 8, pad = 3, size = (n + pad * 2) * cell, g = cv.getContext('2d');
+  cv.width = cv.height = size;
+  g.fillStyle = '#fff'; g.fillRect(0, 0, size, size);
+  g.fillStyle = '#0e3157';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) g.fillRect((c + pad) * cell, (r + pad) * cell, cell, cell);
+  // „G“-Zeichen aus dem Logo in die Mitte (der QR-Code verkraftet das dank hoher Fehlerkorrektur)
+  const img = $('header.top img');
+  if (img && img.complete && img.naturalWidth) {
+    const s = size * 0.24, x = (size - s) / 2, sw = img.naturalWidth * 0.296, sh = img.naturalHeight, h = s * sh / sw;
+    g.fillStyle = '#fff'; g.fillRect(x - 6, x - 6, s + 12, s + 12);
+    g.drawImage(img, 0, 0, sw, sh, x, x + (s - h) / 2, s, h);
+  }
+}
+async function appTeilen() {
+  const url = location.origin + location.pathname;
+  const m = document.createElement('div');
+  m.className = 'modal';
+  m.innerHTML = `<div class="modal-box share-box" role="dialog" aria-modal="true">
+      <h3>📲 Werkzeugkasten teilen</h3>
+      <p class="muted">Mit der Handy-Kamera scannen – die App öffnet sich sofort.</p>
+      <div class="qr-wrap"><canvas id="qr" aria-label="QR-Code mit dem Link zur App"></canvas></div>
+      <div class="share-url">${esc(url)}</div>
+      <div class="row">${navigator.share ? '<button class="btn pink" data-r="share">Link senden …</button>' : ''}
+        <button class="btn ghost" data-r="copy">Link kopieren</button><button class="btn" data-r="close">Schließen</button></div></div>`;
+  m.addEventListener('click', e => {
+    const b = e.target.closest('[data-r]');
+    if (e.target === m || (b && b.dataset.r === 'close')) m.remove();
+    else if (b && b.dataset.r === 'share') navigator.share({ title: 'Service-Werkzeugkasten', url }).catch(() => {});
+    else if (b && b.dataset.r === 'copy') navigator.clipboard.writeText(url).then(() => toast('Link kopiert.'), () => toast('Kopieren nicht möglich.'));
+  });
+  document.body.appendChild(m);
+  try { await loadScript(QR_LIB, 'qrcode'); drawQr($('#qr'), url); }
+  catch (e) { m.querySelector('.qr-wrap').innerHTML = '<p class="muted">Für den QR-Code wird Internet gebraucht.</p>'; }
+}
+
+/* ---------- Spracheingabe (Diktat) ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const mic = sel => SR ? `<button type="button" class="mic" data-act="mic" data-target='${sel}' title="Diktieren" aria-label="Diktieren">🎤</button>` : '';
+let diktatLaeuft = null;
+function diktat(b) {
+  if (diktatLaeuft) { diktatLaeuft.stop(); return; }
+  const ta = document.querySelector(b.dataset.target);
+  if (!ta) return;
+  const r = new SR();
+  r.lang = 'de-DE'; r.interimResults = true; r.continuous = false;
+  const vorher = ta.value ? ta.value.replace(/\s*$/, ' ') : '';
+  const setze = v => { ta.value = v; ta.dispatchEvent(new Event('input', { bubbles: true })); };
+  r.onresult = e => setze(vorher + [...e.results].map(x => x[0].transcript).join(' '));
+  r.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') say('Bitte erlaube der Seite den Zugriff aufs Mikrofon.'); };
+  r.onend = () => { b.classList.remove('rec'); diktatLaeuft = null; setze(ta.value.trim()); };
+  b.classList.add('rec');
+  if (navigator.vibrate) navigator.vibrate(20);
+  diktatLaeuft = r;
+  r.start();
+}
+
 /* ---------- Seiten ---------- */
 const PAGES = {
   start() {
-    return `<h1>Servicetechnik – Übersicht</h1>
-      <p class="lead">Werkzeuge für Wartung, Einregulierung, Dichtheitsprüfung und Hygiene.</p>
+    return `${startHero()}
+      <h2 class="sec-h">Werkzeuge</h2>
       <div class="tiles">
         ${[
           ['volumen', '🌀', 'Volumenstrom', 'K-Faktor-Rechner und Kanalrechner mit Anleitung'],
@@ -426,6 +664,10 @@ const PAGES = {
           ['maengel', '✅', 'Restmängel / Abnahme', `Offene Punkte je Baustelle mit Priorität · ${db.maengel.length} Projekte`],
           ['aufnahme', '📋', 'Anlagenaufnahme', `Für Wartungsangebote · ${db.aufnahme.length} gespeichert`],
         ].map(([k, ic, t, s]) => `<a class="tile" href="#${k}"><span class="ic">${ic}</span><b>${t}</b><small>${s}</small></a>`).join('')}
+      </div>
+      <div class="share-row">
+        <button class="btn pink" data-act="share">📲 App teilen</button>
+        ${installPrompt ? '<button class="btn" data-act="install">⬇ Als App installieren</button>' : ''}
       </div>
       ${syncCard()}
       <div class="card" style="margin-top:20px">
@@ -814,7 +1056,7 @@ function maengelEditor(r) {
         <div class="palette">${M_VORSCHLAEGE.map(t => `<button class="chip" data-act="mChip" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div>
       </details>
       <div class="grid">
-        <label class="f wide">Beschreibung<textarea id="m-text" placeholder="Was fehlt oder ist noch zu tun?">${esc(mDraft.text)}</textarea></label>
+        <label class="f wide">Beschreibung<span class="ta-wrap"><textarea id="m-text" placeholder="Was fehlt oder ist noch zu tun?${SR ? ' – oder 🎤 antippen und sprechen' : ''}">${esc(mDraft.text)}</textarea>${mic('#m-text')}</span></label>
         <label class="f">Ort / Raum<input id="m-ort" value="${esc(mDraft.ort)}" placeholder="z. B. 2. OG, Raum 2.14"></label>
         <label class="f">Bereich<select id="m-bereich">${opts(BEREICHE, mDraft.bereich)}</select></label>
       </div>
@@ -836,7 +1078,7 @@ function mItem(m, j) {
   return `<div class="m-item p-${m.prio} ${m.done ? 'done' : ''}">
     <button class="m-check" data-act="mDone" data-j="${j}" title="${m.done ? 'wieder öffnen' : 'als erledigt markieren'}" aria-label="erledigt">${m.done ? '✓' : ''}</button>
     <div class="m-main">
-      <textarea class="m-text" rows="2" data-p="${pre}text">${esc(m.text)}</textarea>
+      <span class="ta-wrap"><textarea class="m-text" rows="2" data-p="${pre}text">${esc(m.text)}</textarea>${mic(`[data-p="${pre}text"]`)}</span>
       <div class="m-meta">
         ${prioButtons(m.prio, 'mPrio', `data-j="${j}"`)}
         <input data-p="${pre}ort" value="${esc(m.ort)}" placeholder="Ort / Raum">
@@ -1478,6 +1720,7 @@ function route() {
   } else {
     app.innerHTML = (PAGES[page] || PAGES.start)();
     if (page === 'volumen') calc();
+    if (page === 'start' || page === '') zaehlen();
     if (page === 'zugaenge') renderCodes();
   }
   window.scrollTo(0, 0);
@@ -1587,7 +1830,7 @@ document.addEventListener('click', e => {
   const act = b.dataset.act, r = cur.rec, i = +b.dataset.i, j = +b.dataset.j;
   const A = () => r.anlagen[i];
   switch (act) {
-    case 'newRec': { const k = b.dataset.k, n = CFG[k].newRec(); db[k].push(n); save(); location.hash = `${k}/${n.id}`; return; }
+    case 'newRec': { const k = b.dataset.k, n = CFG[k].newRec(); n._t = Date.now(); db[k].push(n); save(); location.hash = `${k}/${n.id}`; return; }
     case 'delRec': {
       const k = b.dataset.k;
       ask('Diese Aufnahme wirklich löschen?', 'Löschen').then(ok => { if (ok) { db[k] = db[k].filter(x => x.id !== b.dataset.id); save(); rerender(); } });
@@ -1617,11 +1860,13 @@ document.addEventListener('click', e => {
       if (!mDraft.text.trim()) { say('Bitte zuerst beschreiben, was fehlt oder zu tun ist.'); return; }
       r.items.push({ id: uid(), text: mDraft.text.trim(), prio: mDraft.prio, bereich: mDraft.bereich, ort: mDraft.ort.trim(), wer: '', done: false, doneAm: '' });
       mDraft.text = ''; mDraft.ort = '';
+      if (navigator.vibrate) navigator.vibrate(25);
       if (mFilter === 'erledigt') mFilter = 'offen';
       break;
     case 'mPrio': r.items[j].prio = b.dataset.v; break;
     case 'mDone': {
       const m = r.items[j]; m.done = !m.done; m.doneAm = m.done ? today() : '';
+      if (navigator.vibrate) navigator.vibrate(m.done ? [20, 40, 20] : 20);
       if (m.done && mFilter === 'offen') toast('Als erledigt gemeldet – steht jetzt unter „Erledigt“.');
       break;
     }
@@ -1640,6 +1885,11 @@ document.addEventListener('click', e => {
       if (!z.h && !z.s) { say('Bitte mindestens Hersteller oder Steuerung angeben.'); return; }
       db.zugaenge.push(z); save(); rerender(); return;
     }
+    case 'menuOpen': menuOpen(); return;
+    case 'menuClose': menuClose(); return;
+    case 'mic': diktat(b); return;
+    case 'share': appTeilen(); return;
+    case 'install': appInstallieren(); return;
     case 'sbLogin': sbLogin(); return;
     case 'sbLogout': sbLogout(); return;
     case 'sbSync': runSync(); return;
