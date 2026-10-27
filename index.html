@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Service-Werkzeugkasten</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0e3157">
+<meta name="apple-mobile-web-app-title" content="Werkzeugkasten">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <style>
   :root {
     --navy: #0e3157;
@@ -188,8 +195,11 @@
   textarea.m-text { min-height: 0; font-weight: 600; }
   .m-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
   .m-meta input, .m-meta select { flex: 1 1 130px; width: auto; padding: 7px 9px; font-size: 14px; }
-  .m-frist { display: flex; align-items: center; gap: 6px; flex: 1 1 170px; font-size: 13px; color: var(--muted); font-weight: 600; }
-  .m-doneinfo { font-size: 13px; color: var(--ok); font-weight: 600; }
+  .m-status { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .m-doneinfo { font-size: 13px; color: var(--ok); font-weight: 700; }
+  .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--navy); color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 70; box-shadow: 0 6px 20px rgba(0, 0, 0, .25); max-width: calc(100% - 32px); text-align: center; }
+  .btn.ok { background: var(--ok); }
+  .btn.ok:hover { background: #166e3b; }
   @media (max-width: 720px) {
     .m-stats { grid-template-columns: repeat(3, 1fr); }
     .m-add { margin-left: 0; width: 100%; justify-content: center; }
@@ -244,6 +254,13 @@ function dialog(msg, { input = false, ok = 'OK', cancel = null } = {}) {
   });
 }
 const say = msg => dialog(msg);
+// kurzer Hinweis unten am Bildschirm, verschwindet von selbst
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
 const ask = (msg, ok = 'Ja') => dialog(msg, { ok, cancel: 'Abbrechen' });
 const askText = msg => dialog(msg, { input: true, cancel: 'Abbrechen' });
 
@@ -806,9 +823,12 @@ function mItem(m, j) {
         <input data-p="${pre}ort" value="${esc(m.ort)}" placeholder="Ort / Raum">
         <select data-p="${pre}bereich">${opts(BEREICHE, m.bereich)}</select>
         <input data-p="${pre}wer" value="${esc(m.wer)}" placeholder="Zuständig">
-        <label class="m-frist">Frist<input type="date" data-p="${pre}frist" value="${esc(m.frist)}"></label>
       </div>
-      ${m.done ? `<div class="m-doneinfo">Erledigt am ${esc(fmtDate(m.doneAm))}</div>` : ''}
+      <div class="m-status">
+        ${m.done
+          ? `<span class="m-doneinfo">✓ Erledigt am ${esc(fmtDate(m.doneAm))}</span><button class="btn ghost sm" data-act="mDone" data-j="${j}">Wieder öffnen</button>`
+          : `<button class="btn ok sm" data-act="mDone" data-j="${j}">✓ Als erledigt melden</button>`}
+      </div>
     </div>
     <button class="btn danger sm" data-act="mDel" data-j="${j}" title="Aufgabe löschen">✕</button>
   </div>`;
@@ -825,7 +845,7 @@ function maengelText(r) {
   L.push(`Projekt: ${[r.nr, r.projekt].filter(Boolean).join(' – ')}`, `Kunde: ${r.kunde.name || ''}`, `Adresse: ${mAdresse(r)}`,
     `Datum Begehung: ${fmtDate(r.datum)}`, '', `Offene Punkte (${c.offen}):`);
   mSort(r.items).filter(x => !x.m.done).forEach(({ m }, i) => L.push(
-    `${i + 1}. [${prioLabel(m.prio)}] ${m.text}${m.ort ? ' – ' + m.ort : ''}${m.wer ? ' – zuständig: ' + m.wer : ''}${m.frist ? ' – bis ' + fmtDate(m.frist) : ''}`));
+    `${i + 1}. [${prioLabel(m.prio)}] ${m.text}${m.ort ? ' – ' + m.ort : ''}${m.wer ? ' – zuständig: ' + m.wer : ''}`));
   if (c.erledigt) L.push('', `Erledigt: ${c.erledigt} Punkt(e)`);
   return L.join('\n');
 }
@@ -847,9 +867,9 @@ async function maengelPdf(r) {
 
   P.heading(`Offene Punkte (${offen.length})`);
   if (offen.length) {
-    P.table([['Nr.', 'Mangel / Aufgabe', 'Ort', 'Priorität', 'Zuständig', 'Frist'],
-      ...offen.map(({ m }, i) => [String(i + 1), was(m), m.ort || '', prioLabel(m.prio), m.wer || '', fmtDate(m.frist)])],
-      [28, 185, 85, 58, 75, CW - 431], (ri, ci) => ri === 0 ? head : ci === 3 ? prioCol[offen[ri - 1].m.prio] || cell : cell, true);
+    P.table([['Nr.', 'Mangel / Aufgabe', 'Ort', 'Priorität', 'Zuständig'],
+      ...offen.map(({ m }, i) => [String(i + 1), was(m), m.ort || '', prioLabel(m.prio), m.wer || ''])],
+      [28, 215, 95, 58, CW - 396], (ri, ci) => ri === 0 ? head : ci === 3 ? prioCol[offen[ri - 1].m.prio] || cell : cell, true);
   } else P.para('Keine offenen Punkte.');
 
   if (erl.length) {
@@ -1321,12 +1341,16 @@ document.addEventListener('click', e => {
     case 'mDraftPrio': mDraft.prio = b.dataset.v; rerender(); return;
     case 'mAdd':
       if (!mDraft.text.trim()) { say('Bitte zuerst beschreiben, was fehlt oder zu tun ist.'); return; }
-      r.items.push({ id: uid(), text: mDraft.text.trim(), prio: mDraft.prio, bereich: mDraft.bereich, ort: mDraft.ort.trim(), wer: '', frist: '', done: false, doneAm: '' });
+      r.items.push({ id: uid(), text: mDraft.text.trim(), prio: mDraft.prio, bereich: mDraft.bereich, ort: mDraft.ort.trim(), wer: '', done: false, doneAm: '' });
       mDraft.text = ''; mDraft.ort = '';
       if (mFilter === 'erledigt') mFilter = 'offen';
       break;
     case 'mPrio': r.items[j].prio = b.dataset.v; break;
-    case 'mDone': { const m = r.items[j]; m.done = !m.done; m.doneAm = m.done ? today() : ''; break; }
+    case 'mDone': {
+      const m = r.items[j]; m.done = !m.done; m.doneAm = m.done ? today() : '';
+      if (m.done && mFilter === 'offen') toast('Als erledigt gemeldet – steht jetzt unter „Erledigt“.');
+      break;
+    }
     case 'mDel': ask('Diese Aufgabe löschen?', 'Löschen').then(ok => { if (ok) { r.items.splice(j, 1); save(); rerender(); } }); return;
     case 'mFilter': mFilter = b.dataset.v; rerender(); return;
     case 'mPdf': b.disabled = true; maengelPdf(r).finally(() => { b.disabled = false; }); return;
