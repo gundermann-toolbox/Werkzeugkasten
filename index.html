@@ -232,6 +232,12 @@
     .card { break-inside: avoid; border-color: #bbb; }
   }
   .badge.z-ok { background: #e3f4ea; color: var(--ok); }
+  .badge.z-warn { background: #fff1dc; color: var(--warn); }
+  .lw-ist { margin-top: 10px; padding: 10px 12px; border-radius: 8px; font-size: 14px; }
+  .lw-ist:empty { display: none; }
+  .lw-ist.ok { background: #e3f4ea; color: #14572f; }
+  .lw-ist.warn { background: #fff1dc; color: #7a4a00; }
+  .lw-ist.bad { background: #fde7e7; color: #8e1c1c; }
   .badge.z-bad { background: #fde7e7; color: var(--bad); }
   details.m-proj > summary { list-style: none; cursor: pointer; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
   details.m-proj > summary::-webkit-details-marker { display: none; }
@@ -279,6 +285,11 @@
   .hdr-r { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .hdr-gear { font-size: 22px; line-height: 1; text-decoration: none; color: var(--navy); width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); background: #fff; }
   .hdr-gear:hover { border-color: var(--pink); color: var(--pink); }
+  table.codes a { color: var(--navy); }
+  @media (max-width: 720px) {
+    .hdr-r { flex-wrap: nowrap; gap: 8px; }
+    .hdr-gear { width: 34px; height: 34px; font-size: 19px; flex: none; }
+  }
   .sync-pill { font-size: 12px; font-weight: 700; text-decoration: none; padding: 4px 10px; border-radius: 99px; background: #eef2f7; color: var(--muted); white-space: nowrap; }
   .sync-pill.ok { background: #e3f4ea; color: var(--ok); }
   .sync-pill.warn { background: #fff1dc; color: var(--warn); }
@@ -445,12 +456,29 @@ const HYG_PROJEKT = [
   { k: 'kunde.ort', l: 'Ort' },
   { k: 'kunde.ansprech', l: 'Ansprechpartner vor Ort' },
 ];
+const HYG_OHNE = 'ohne Befeuchtung – alle 3 Jahre', HYG_MIT = 'mit Befeuchtung / erdverlegt – alle 2 Jahre';
+// Fälligkeit der nächsten Hygieneinspektion: Datum + 3 Jahre (mit Befeuchtung 2 Jahre) oder eigenes Datum
+function hygFaellig(r) {
+  if (r.naechste) return r.naechste;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(r.datum || '');
+  if (!m) return '';
+  return `${+m[1] + (r.befeuchtung === HYG_MIT ? 2 : 3)}-${m[2]}-${m[3]}`;
+}
+function hygStatus(r) {
+  const f = hygFaellig(r);
+  if (!f) return null;
+  const tage = Math.round((new Date(f + 'T00:00') - new Date(today() + 'T00:00')) / 86400000);
+  return { f, tage, cls: tage < 0 ? 'bad' : tage <= 90 ? 'warn' : 'ok',
+    text: tage < 0 ? `seit ${-tage} Tagen überfällig` : tage === 0 ? 'heute fällig' : tage <= 90 ? `fällig in ${tage} Tagen` : `fällig ${fmtDate(f)}` };
+}
 const HYG_GERAET = [
   { k: 'bez', l: 'Anlagenbezeichnung', ph: 'z. B. RLT 01 Büro' },
   { k: 'hersteller', l: 'Hersteller Lüftungsgerät' },
   { k: 'typ', l: 'Modell / Typenbezeichnung' },
   { k: 'luft', l: 'Luftmenge [m³/h]', t: 'num' },
   { k: 'standort', l: 'Standort des Geräts' },
+  { k: 'befeuchtung', l: 'Inspektionsintervall (VDI 6022)', t: 'select', o: ['', HYG_OHNE, HYG_MIT] },
+  { k: 'naechste', l: 'Nächste Inspektion (nur falls abweichend)', t: 'date' },
 ];
 
 const CFG = {
@@ -459,7 +487,13 @@ const CFG = {
     lead: 'Ein Blatt pro Anlage: vor Ort ausfüllen, danach als Word-Datei oder PDF für den Prüfbericht speichern.',
     newRec: () => ({ id: uid(), datum: today(), nr: '', projekt: '', kunde: {}, schema: [], bem: '' }),
     editor: r => hygieneEditor(r),
-    listItem: r => [[r.nr, r.projekt || r.kunde.name].filter(Boolean).join(" · ") || "Ohne Bezeichnung", esc([r.bez, r.kunde.name, r.kunde.ort, fmtDate(r.datum)].filter(Boolean).join(" · "))],
+    listItem: r => {
+      const st = hygStatus(r);
+      return [[r.nr, r.projekt || r.kunde.name].filter(Boolean).join(' · ') || 'Ohne Bezeichnung',
+        esc([r.bez, r.kunde.name, r.kunde.ort, fmtDate(r.datum)].filter(Boolean).join(' · '))
+        + (st ? ` <span class="badge z-${st.cls}">${st.text}</span>` : '')];
+    },
+    oben: () => faelligkeitenHTML(),
     normalize: r => { r.schema = r.schema || []; },
   },
   aufnahme: {
@@ -576,7 +610,7 @@ const PAGES = {
       <p class="lead">Werkzeuge für Wartung, Einregulierung, Dichtheitsprüfung und Hygiene.</p>
       <div class="tiles">
         ${[
-          ['volumen', '🌀', 'Volumenstrom', 'K-Faktor-Rechner und Kanalrechner mit Anleitung'],
+          ['volumen', '🌀', 'Volumenstrom', 'K-Faktor, Kanalrechner, Luftwechsel & Richtwerte'],
           ['zugaenge', '🔑', 'Steuerungs-Zugänge', 'Übersicht Hersteller, Webseiten-Codes, Passwörter'],
           ['dichtheit', '📏', 'Luftdichtheit', 'Messgerät-Textdatei → schönes PDF-Protokoll'],
           ['hygiene', '🧫', 'Hygieneinspektion', `Vor-Ort-Aufnahme je Anlage → Word / PDF · ${db.hygiene.length} gespeichert`],
@@ -658,6 +692,42 @@ const PAGES = {
             <li>Formel: V̇ [m³/h] = A [m²] · v [m/s] · 3600</li>
           </ul>
         </details>
+      </div>
+
+      <div class="card">
+        <h2>Luftwechsel &amp; Richtwerte je Raumart</h2>
+        <div class="grid">
+          <label class="f">Länge [m]<input id="lw-l" inputmode="decimal" placeholder="z. B. 6"></label>
+          <label class="f">Breite [m]<input id="lw-b" inputmode="decimal" placeholder="z. B. 4,5"></label>
+          <label class="f">Raumhöhe [m]<input id="lw-h" inputmode="decimal" placeholder="z. B. 3"></label>
+          <label class="f">Raumart / Richtwert<select id="lw-art">
+            ${LW_ARTEN.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}
+          </select></label>
+          <label class="f" data-lw="frei">Luftwechsel n [1/h]<input id="lw-n" inputmode="decimal" placeholder="z. B. 4"></label>
+          <label class="f" data-lw="buero">Personen<input id="lw-p" inputmode="decimal" placeholder="z. B. 4"></label>
+          <label class="f" data-lw="buero">Kategorie (Raumluftqualität)<select id="lw-kat">
+            <option value="1">I – hohe Erwartung</option><option value="2" selected>II – normale Erwartung</option><option value="3">III – mäßige Erwartung</option>
+          </select></label>
+          <label class="f" data-lw="buero">Gebäude / Materialien<select id="lw-bel">
+            <option value="0">sehr schadstoffarm</option><option value="1" selected>schadstoffarm (Standard)</option><option value="2">nicht schadstoffarm</option>
+          </select></label>
+          <label class="f" data-lw="abzug">Anzahl Abzüge<input id="lw-anz" inputmode="decimal" placeholder="z. B. 2"></label>
+          <label class="f" data-lw="abzug">Abluft je Abzug [m³/h] laut Hersteller<input id="lw-abz" inputmode="decimal" placeholder="Typenschild / Datenblatt"></label>
+          <label class="f">Gemessener Volumenstrom [m³/h] (optional)<input id="lw-ist" inputmode="decimal" placeholder="z. B. aus Testo-Messung"></label>
+        </div>
+        <div class="result"><small id="lw-was">Volumenstrom</small><div class="big" id="lw-res">–<span>m³/h</span></div><small id="lw-info"></small></div>
+        <div class="lw-ist" id="lw-vergleich"></div>
+        <p class="muted" id="lw-quelle" style="margin-bottom:0"></p>
+        <details class="help">
+          <summary>Woher kommen die Werte?</summary>
+          <ul>
+            <li><b>Büro / Besprechung – DIN EN 16798-1:</b> Außenluft = Personen × q<sub>P</sub> + Fläche × q<sub>B</sub>. Kategorie II: 7 l/s je Person und 0,7 l/(s·m²) bei schadstoffarmem Gebäude (Kat. I: 10 / 1,0 – Kat. III: 4 / 0,4). Mindestens 4 l/s je Person.</li>
+            <li><b>Labor – DIN 1946-7:</b> Planungswert 25 m³/h je m² Laborfläche (bei 3 m Raumhöhe etwa 8-facher Luftwechsel).</li>
+            <li><b>Toiletten- und Waschräume – ASR A4.1:</b> Abluft 11 m³/h je m² Grundfläche.</li>
+            <li><b>Digestorien – DIN EN 14175:</b> kein fester Normwert; die Abluft richtet sich nach dem Abzug (Typenschild / Herstellerdatenblatt).</li>
+          </ul>
+          <p class="muted">Richtwerte zur Orientierung. Maßgeblich sind die Anlagenplanung und die jeweils gültige Fassung der Norm bzw. Regel.</p>
+        </details>
       </div>`;
   },
 
@@ -724,9 +794,30 @@ const PAGES = {
 };
 
 /* ---------- Listen + Editor (Hygiene / Aufnahme) ---------- */
+// Übersicht: wann ist bei welcher Anlage die nächste Hygieneinspektion fällig (je Anlage zählt die letzte Inspektion)
+function faelligkeitenHTML() {
+  const letzte = {};
+  for (const r of db.hygiene) {
+    const key = [(r.kunde.name || '').trim().toLowerCase(), (r.bez || r.projekt || r.id).trim().toLowerCase()].join('|');
+    if (!letzte[key] || (r.datum || '') > (letzte[key].datum || '')) letzte[key] = r;
+  }
+  const list = Object.values(letzte).map(r => ({ r, st: hygStatus(r) })).filter(x => x.st).sort((a, b) => a.st.tage - b.st.tage);
+  if (!list.length) return '';
+  const ue = list.filter(x => x.st.cls === 'bad').length, bald = list.filter(x => x.st.cls === 'warn').length;
+  return `<div class="card accent">
+      <div class="toolbar" style="margin-bottom:6px"><h2 style="margin:0">Fälligkeiten</h2>
+        <div class="row">${ue ? `<span class="badge z-bad">${ue} überfällig</span>` : ''}${bald ? `<span class="badge z-warn">${bald} in den nächsten 90 Tagen</span>` : ''}</div></div>
+      <p class="muted" style="margin-top:0">Nach VDI 6022 alle 3 Jahre, mit Befeuchtung oder erdverlegten Kanälen alle 2 Jahre. Frühere Inspektionen einfach mit „+ Neu anlegen“ und ihrem Datum nachtragen.</p>
+      <table class="codes"><thead><tr><th>Anlage</th><th>Kunde</th><th>Letzte Inspektion</th><th>Nächste</th></tr></thead><tbody>
+      ${list.map(({ r, st }) => `<tr><td><a href="#hygiene/${r.id}"><b>${esc(r.bez || r.projekt || 'Ohne Bezeichnung')}</b></a></td>
+        <td>${esc([r.kunde.name, r.kunde.ort].filter(Boolean).join(', '))}</td><td>${esc(fmtDate(r.datum))}</td>
+        <td><span class="badge z-${st.cls}">${st.text}</span></td></tr>`).join('')}
+      </tbody></table></div>`;
+}
+
 function listPage(kind) {
   const c = CFG[kind], recs = db[kind];
-  return `<h1>${c.title}</h1><p class="lead">${c.lead}</p>
+  return `<h1>${c.title}</h1><p class="lead">${c.lead}</p>${c.oben ? c.oben() : ''}
     <div class="toolbar"><button class="btn pink" data-act="newRec" data-k="${kind}">+ Neu anlegen</button>
       <label class="btn ghost sm">Einzelne Aufnahme importieren<input type="file" accept=".json" data-act="importRec" data-k="${kind}" hidden></label></div>
     <div class="card">${recs.length ? recs.slice().reverse().map(r => `
@@ -1651,6 +1742,47 @@ function route() {
 function rerender() { const y = window.scrollY; route(); window.scrollTo(0, y); }
 
 /* ---------- Rechner ---------- */
+// Raumarten für den Luftwechsel-Rechner
+const LW_ARTEN = [
+  ['frei', 'Eigener Luftwechsel (n × Raumvolumen)'],
+  ['buero', 'Büro / Besprechung – DIN EN 16798-1'],
+  ['labor', 'Labor – DIN 1946-7 (25 m³/h je m²)'],
+  ['wc', 'Toilettenraum – ASR A4.1 (11 m³/h je m²)'],
+  ['wasch', 'Waschraum – ASR A4.1 (11 m³/h je m²)'],
+  ['abzug', 'Digestorien / Abzüge – nach Herstellerangabe'],
+];
+// DIN EN 16798-1: l/s je Person (Kategorie I–III) und l/(s·m²) für sehr schadstoffarm / schadstoffarm / nicht schadstoffarm
+const EN16798 = { qp: { 1: 10, 2: 7, 3: 4 }, qb: { 1: [0.5, 1.0, 2.0], 2: [0.35, 0.7, 1.4], 3: [0.2, 0.4, 0.8] } };
+function calcLW() {
+  const L = num($('#lw-l').value), Bb = num($('#lw-b').value), Hh = num($('#lw-h').value), art = $('#lw-art').value;
+  const A = L * Bb, V = A * Hh;
+  document.querySelectorAll('[data-lw]').forEach(el => { el.hidden = el.dataset.lw !== art; });
+  let q = NaN, was = 'Erforderlicher Volumenstrom', quelle = '';
+  if (art === 'frei') { q = num($('#lw-n').value) * V; was = 'Volumenstrom'; }
+  if (art === 'buero') {
+    const k = $('#lw-kat').value, p = num($('#lw-p').value) || 0, bel = +$('#lw-bel').value;
+    const ls = Math.max(p * EN16798.qp[k] + (A || 0) * EN16798.qb[k][bel], p * 4);
+    q = (p || A) ? ls * 3.6 : NaN; was = 'Außenluft (Zuluft)';
+    quelle = `DIN EN 16798-1, Kategorie ${['', 'I', 'II', 'III'][k]}: ${fmt(EN16798.qp[k], 0)} l/s je Person + ${fmt(EN16798.qb[k][bel], 2)} l/(s·m²)`;
+  }
+  if (art === 'labor') { q = A * 25; was = 'Abluft'; quelle = 'DIN 1946-7: 25 m³/h je m² Laborfläche'; }
+  if (art === 'wc' || art === 'wasch') { q = A * 11; was = 'Abluft'; quelle = 'ASR A4.1: 11 m³/h je m² Grundfläche'; }
+  if (art === 'abzug') { q = num($('#lw-anz').value) * num($('#lw-abz').value); was = 'Abluft der Abzüge'; quelle = 'DIN EN 14175: Abluft nach Herstellerangabe des Abzugs'; }
+  $('#lw-was').textContent = was;
+  $('#lw-res').innerHTML = `${fmt(q)}<span>m³/h</span>`;
+  const n = q / V;
+  $('#lw-info').textContent = [A > 0 ? `Fläche ${fmt(A, 1)} m²` : '', V > 0 ? `Volumen ${fmt(V, 1)} m³` : '',
+    isFinite(n) && V > 0 && art !== 'frei' ? `entspricht ${fmt(n, 1)}-fachem Luftwechsel` : ''].filter(Boolean).join(' · ');
+  $('#lw-quelle').textContent = quelle;
+  // Vergleich mit dem gemessenen Volumenstrom
+  const ist = num($('#lw-ist').value), box = $('#lw-vergleich');
+  if (isFinite(ist) && isFinite(q) && q > 0) {
+    const abw = (ist - q) / q * 100;
+    box.className = 'lw-ist ' + (abw >= 0 ? 'ok' : abw >= -10 ? 'warn' : 'bad');
+    box.innerHTML = `<b>Gemessen ${fmt(ist)} m³/h</b> · ${abw >= 0 ? '+' : ''}${fmt(abw, 0)} % zum Richtwert${V > 0 ? ` · Ist-Luftwechsel ${fmt(ist / V, 1)}-fach` : ''}`;
+  } else { box.className = 'lw-ist'; box.innerHTML = ''; }
+}
+
 function calc() {
   const k = num($('#kf').value), dp = num($('#dp').value), rho = num($('#rho').value) || 1.2;
   const rhoMode = $('#kmode').value === 'rho';
@@ -1669,6 +1801,7 @@ function calc() {
   const A = round ? Math.PI * a * a / 4 : a * b;
   $('#kanres').innerHTML = `${fmt(A * vv * 3600)}<span>m³/h</span>`;
   $('#kanres2').textContent = isFinite(A) ? `Querschnitt A = ${fmt(A, 4)} m²` : '';
+  calcLW();
 }
 
 /* ---------- Zugänge ---------- */
