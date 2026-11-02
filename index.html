@@ -179,6 +179,10 @@
   .flow-info i { color: var(--pink); font-style: normal; margin: 0 4px; }
   .schema-empty { text-align: center; padding: 12px; color: var(--muted); font-size: 14px; border: 1px dashed var(--line); border-radius: 8px; }
 
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
+  .grid2 .wide { grid-column: 1 / -1; }
+  .anlage h3 { color: var(--navy); }
+  .bsk-row { display: grid; grid-template-columns: 110px 1.6fr 1fr 1.3fr auto; gap: 8px; align-items: end; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--line); }
   .filter-row { display: grid; grid-template-columns: 1fr 1fr 1.4fr 80px auto; gap: 8px; align-items: end; margin-bottom: 8px; }
 
   table.codes { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -219,6 +223,13 @@
     .teil .t-main { flex-basis: calc(100% - 40px); }
     .teil .moves { margin-left: auto; }
     .filter-row { grid-template-columns: 1fr 1fr; }
+    .grid2 { grid-template-columns: 1fr; }
+    .bsk-row { grid-template-columns: 1fr 1fr auto; grid-template-areas: "nr ausl del" "ort ort ort" "bem bem bem"; }
+    .bsk-row > :nth-child(1) { grid-area: nr; }
+    .bsk-row > :nth-child(2) { grid-area: ort; }
+    .bsk-row > :nth-child(3) { grid-area: ausl; }
+    .bsk-row > :nth-child(4) { grid-area: bem; }
+    .bsk-row > :nth-child(5) { grid-area: del; }
     table.codes thead { display: none; }
     table.codes tr { display: block; border-bottom: 1px solid var(--line); padding: 6px 0; }
     table.codes td { display: block; border: 0; padding: 2px 0; }
@@ -501,29 +512,33 @@ const CFG = {
     lead: 'Anlagen beim Kunden aufnehmen – alles, was für das Wartungsangebot gebraucht wird.',
     newRec: () => ({ id: uid(), datum: today(), kunde: {}, anlagen: [], bem: '' }),
     head: [],
-    anlage: [
-      { k: 'bez', l: 'Anlagenbezeichnung', ph: 'z. B. RLT 01 Küche' },
-      { k: 'art', l: 'Anlagenart', t: 'select', o: ANLAGENART },
-      { k: 'funktion', l: 'Was macht die Anlage?', ph: 'z. B. Belüftung Büros EG' },
-      { k: 'standort', l: 'Standort', ph: 'z. B. Dach, Technikzentrale UG' },
-      { k: 'hersteller', l: 'Hersteller' },
-      { k: 'typ', l: 'Typ' },
-      { k: 'baujahr', l: 'Baujahr' },
-      { k: 'luftZu', l: 'Luftmenge Zuluft [m³/h]', t: 'num' },
-      { k: 'luftAb', l: 'Luftmenge Abluft [m³/h]', t: 'num' },
-      { k: 'wrg', l: 'Wärmerückgewinnung', t: 'select', o: ['', 'keine', 'Plattentauscher', 'Rotor', 'KVS', 'Wärmerohr'] },
-      { k: 'steuerung', l: 'Regelung / Steuerung' },
-      { k: 'register', l: 'Register (Heizen / Kühlen)', ph: 'z. B. PWW-Heizer, Kühler DX' },
-      { k: 'keilriemen', l: 'Keilriemen vorhanden?', t: 'select', o: ['', 'nein (Direktantrieb / EC)', 'ja'] },
-      { k: 'keilriemenTyp', l: 'Keilriemen Typ / Anzahl', ph: 'z. B. 2× SPA 1250' },
-      { k: 'bskAnz', l: 'Brandschutzklappen Anzahl', t: 'num' },
-      { k: 'bskArt', l: 'BSK Auslösung', t: 'select', o: ['', 'Schmelzlot', 'Federrücklaufmotor', 'gemischt', 'unbekannt'] },
-      { k: 'rmAnz', l: 'Rauchmelder Anzahl', t: 'num' },
-      { k: 'rmTyp', l: 'Rauchmelder Typ', ph: 'z. B. Kanalrauchmelder' },
-      { k: 'zugang', l: 'Zugänglichkeit', t: 'select', o: ['', 'gut', 'Leiter nötig', 'Hubbühne nötig', 'schwierig'] },
-      { k: 'bem', l: 'Bemerkungen zur Anlage', t: 'textarea' },
+    // Abschnitte einer Anlage (höchstens zwei Felder nebeneinander)
+    gruppen: [
+      ['Gerät', [
+        { k: 'bez', l: 'Anlagenbezeichnung', ph: 'z. B. RLT 01 Küche' },
+        { k: 'art', l: 'Anlagenart', t: 'select', o: ANLAGENART },
+        { k: 'funktion', l: 'Was macht die Anlage?', ph: 'z. B. Belüftung Büros EG' },
+        { k: 'standort', l: 'Standort', ph: 'z. B. Dach, Technikzentrale UG' },
+        { k: 'hersteller', l: 'Hersteller' },
+        { k: 'typ', l: 'Typ' },
+        { k: 'baujahr', l: 'Baujahr' },
+        { k: 'zugang', l: 'Zugänglichkeit', t: 'select', o: ['', 'gut', 'Leiter nötig', 'Hubbühne nötig', 'schwierig'] },
+      ]],
+      ['Luftmengen & Steuerung', [
+        { k: 'luftZu', l: 'Luftmenge Zuluft [m³/h]', t: 'num' },
+        { k: 'luftAb', l: 'Luftmenge Abluft [m³/h]', t: 'num' },
+        { k: 'steuerung', l: 'Regelung / Steuerung', wide: true },
+      ]],
+      ['Antrieb', [
+        { k: 'keilriemen', l: 'Keilriemen vorhanden?', t: 'select', o: ['', 'nein (Direktantrieb / EC)', 'ja'] },
+        { k: 'keilriemenTyp', l: 'Keilriemen Typ / Anzahl', ph: 'z. B. 2× SPA 1250' },
+      ]],
+      ['Rauchmelder', [
+        { k: 'rmAnz', l: 'Anzahl', t: 'num' },
+        { k: 'rmTyp', l: 'Typ', ph: 'z. B. Kanalrauchmelder' },
+      ]],
     ],
-    newAnlage: () => ({ id: uid(), filter: [] }),
+    newAnlage: () => ({ id: uid(), filter: [], bsk: [] }),
     filters: true,
   },
   maengel: {
@@ -1426,11 +1441,33 @@ async function pdfMerge() {
   }
 }
 
+const BSK_AUSLOESUNG = ['', 'Schmelzlot', 'Federrücklaufmotor', 'Rauchmelder', 'unbekannt'];
+// nächste BSK-Nummer vorschlagen: „BSK 07“ → „BSK 08“ (führende Nullen bleiben)
+function naechsteBskNr(liste) {
+  const letzte = liste.length ? liste[liste.length - 1].nr || '' : '';
+  const m = /^(.*?)(\d+)(\D*)$/.exec(letzte);
+  if (!m) return letzte ? '' : 'BSK 01';
+  return m[1] + String(+m[2] + 1).padStart(m[2].length, '0') + m[3];
+}
+function anlageFelder(c) { return c.gruppen ? c.gruppen.flatMap(([, f]) => f).concat([{ k: 'bem', l: 'Bemerkungen zur Anlage' }]) : c.anlage; }
+
 function anlageCard(kind, a, i) {
   const c = CFG[kind], pre = `anlagen.${i}.`;
   let extra = '';
+  if (c.gruppen) {
+    a.bsk = a.bsk || [];
+    extra += `<div class="sub"><h3>Brandschutzklappen${a.bsk.length ? ` (${a.bsk.length})` : ''}</h3>
+      ${a.bsk.length ? '' : '<p class="muted" style="margin-top:0">Noch keine Brandschutzklappen erfasst.</p>'}
+      ${a.bsk.map((b, j) => `<div class="bsk-row">
+        <label class="f">BSK-Nr.<input data-p="${pre}bsk.${j}.nr" value="${esc(b.nr)}" placeholder="z. B. BSK 01"></label>
+        <label class="f">Einbauort<input data-p="${pre}bsk.${j}.ort" value="${esc(b.ort)}" placeholder="z. B. 2. OG, Flur Wand Achse C"></label>
+        <label class="f">Auslösung<select data-p="${pre}bsk.${j}.ausl">${BSK_AUSLOESUNG.map(o => `<option ${o === b.ausl ? 'selected' : ''}>${o}</option>`).join('')}</select></label>
+        <label class="f">Bemerkung<input data-p="${pre}bsk.${j}.bem" value="${esc(b.bem)}" placeholder="z. B. Revision schwer zugänglich"></label>
+        <button class="btn danger sm" data-act="delBsk" data-i="${i}" data-j="${j}" title="Brandschutzklappe entfernen">✕</button></div>`).join('')}
+      <button class="btn sm no-print" data-act="addBsk" data-i="${i}">+ Brandschutzklappe</button></div>`;
+  }
   if (c.filters) {
-    extra = `<div class="sub"><h3>Filter</h3>
+    extra += `<div class="sub"><h3>Filter</h3>
       ${a.filter.map((f, j) => `<div class="filter-row">
         <label class="f">Stufe<select data-p="${pre}filter.${j}.stufe">${['Außenluft 1. Stufe', 'Zuluft 2. Stufe', 'Abluft', 'Umluft'].map(o => `<option ${o === f.stufe ? 'selected' : ''}>${o}</option>`).join('')}</select></label>
         <label class="f">Klasse<select data-p="${pre}filter.${j}.klasse">${['', 'ISO Coarse', 'ISO ePM10', 'ISO ePM2,5', 'ISO ePM1', 'G4', 'M5', 'F7', 'F9'].map(o => `<option ${o === f.klasse ? 'selected' : ''}>${o}</option>`).join('')}</select></label>
@@ -1439,10 +1476,13 @@ function anlageCard(kind, a, i) {
         <button class="btn danger sm" data-act="delFilter" data-i="${i}" data-j="${j}">✕</button></div>`).join('')}
       <button class="btn sm no-print" data-act="addFilter" data-i="${i}">+ Filter</button></div>`;
   }
-  return `<div class="card anlage">
-    <div class="anlage-head"><h2 style="margin:0">Anlage ${i + 1}${a.bez ? ': ' + esc(a.bez) : ''}</h2>
-      <button class="btn danger sm no-print" data-act="delAnlage" data-i="${i}">Anlage löschen</button></div>
-    <div class="grid">${fields(c.anlage, a, pre)}</div>${extra}</div>`;
+  const kopf = `<div class="anlage-head"><h2 style="margin:0">Anlage ${i + 1}${a.bez ? ': ' + esc(a.bez) : ''}</h2>
+      <button class="btn danger sm no-print" data-act="delAnlage" data-i="${i}">Anlage löschen</button></div>`;
+  if (!c.gruppen) return `<div class="card anlage">${kopf}<div class="grid">${fields(c.anlage, a, pre)}</div>${extra}</div>`;
+  return `<div class="card anlage">${kopf}
+    ${c.gruppen.map(([titel, f], g) => `<div class="${g ? 'sub' : ''}"><h3>${titel}</h3><div class="grid2">${fields(f, a, pre)}</div></div>`).join('')}
+    ${extra}
+    <div class="sub"><h3>Bemerkungen</h3><div class="grid2">${fields([{ k: 'bem', l: 'Bemerkungen zur Anlage', t: 'textarea' }], a, pre)}</div></div></div>`;
 }
 
 /* ---------- Textausgabe für den Bericht ---------- */
@@ -1455,7 +1495,11 @@ function asText(kind, r) {
     'Ansprechpartner: ' + [k.ansprech, k.tel].filter(Boolean).join(', '), '', 'Anzahl Anlagen: ' + r.anlagen.length);
   r.anlagen.forEach((a, i) => {
     L.push('', `--- Anlage ${i + 1}: ${a.bez || ''} ---`);
-    c.anlage.forEach(f => { if (a[f.k]) L.push(`${f.l}: ${a[f.k]}`); });
+    anlageFelder(c).forEach(f => { if (a[f.k]) L.push(`${f.l}: ${a[f.k]}`); });
+    if (a.bsk && a.bsk.length) {
+      L.push(`Brandschutzklappen (${a.bsk.length}):`);
+      a.bsk.forEach(b => L.push('  ' + [b.nr || '?', b.ort, b.ausl, b.bem].filter(Boolean).join(' – ')));
+    }
     if (a.filter && a.filter.length) {
       L.push('Filter:');
       a.filter.forEach(f => L.push(`  ${f.stufe || ''}: ${f.anz || '?'}× ${f.klasse || ''} ${f.mass || ''}`));
@@ -1950,6 +1994,12 @@ document.addEventListener('click', e => {
     case 'mCopy': navigator.clipboard.writeText(maengelText(r)).then(() => say('Liste kopiert – kann jetzt z. B. in eine Mail eingefügt werden.'), () => say('Kopieren ist in dieser Ansicht nicht möglich.')); return;
     case 'addFilter': A().filter.push({ stufe: 'Außenluft 1. Stufe', klasse: '', mass: '', anz: '' }); break;
     case 'delFilter': A().filter.splice(j, 1); break;
+    case 'addBsk': {
+      const l = A().bsk = A().bsk || [];
+      l.push({ nr: naechsteBskNr(l), ort: '', ausl: l.length ? l[l.length - 1].ausl : '', bem: '' });
+      break;
+    }
+    case 'delBsk': A().bsk.splice(j, 1); break;
     case 'copyText': navigator.clipboard.writeText(asText(cur.kind, r)).then(() => say('Text kopiert – kann jetzt in den Bericht eingefügt werden.'), () => say('Kopieren ist in dieser Ansicht nicht möglich.')); return;
     case 'exportRec': download(`${cur.kind}_${(r.kunde.name || 'kunde').replace(/[^\wäöüÄÖÜß-]+/g, '_')}_${r.datum}.json`, JSON.stringify(r, null, 2)); return;
     case 'print': window.print(); return;
