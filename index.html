@@ -603,6 +603,101 @@ function diktat(b) {
   r.start();
 }
 
+/* ---------- Volumenstrom: Übersicht und Unterseiten ---------- */
+const VOLUMEN_TEILE = [
+  ['kfaktor', '🌀', 'K-Faktor', 'Volumenstrom aus dem Differenzdruck an der Einströmdüse', () => `
+      <div class="card accent">
+        <h2>K-Faktor-Methode (Wirkdruck an der Einströmdüse)</h2>
+        <div class="grid">
+          <label class="f">K-Faktor des Ventilators<input id="kf" inputmode="decimal" placeholder="z. B. 240"></label>
+          <label class="f">Gemessener Differenzdruck Δp [Pa]<input id="dp" inputmode="decimal" placeholder="z. B. 520"></label>
+          <label class="f">Formel laut Hersteller
+            <select id="kmode">
+              <option value="std">V̇ = k · √Δp  (Standard, z. B. ebm-papst, Ziehl-Abegg)</option>
+              <option value="rho">V̇ = k · √(2 · Δp / ρ)  (mit Luftdichte)</option>
+            </select></label>
+          <label class="f">Luftdichte ρ [kg/m³]<input id="rho" inputmode="decimal" value="1,2"></label>
+        </div>
+        <div class="result"><small>Volumenstrom</small><div class="big" id="kres">–<span>m³/h</span></div><small id="kres2"></small></div>
+
+        <h3 style="margin-top:18px">Umgekehrt: Welchen Δp brauche ich für meinen Soll-Volumenstrom?</h3>
+        <div class="grid">
+          <label class="f">Soll-Volumenstrom [m³/h]<input id="vsoll" inputmode="decimal" placeholder="z. B. 5000"></label>
+        </div>
+        <div class="result"><small>Soll-Differenzdruck</small><div class="big" id="dpres">–<span>Pa</span></div></div>
+
+        <details class="help">
+          <summary>Anleitung für Kollegen: So funktioniert die Messung</summary>
+          <ol>
+            <li><b>K-Faktor ablesen:</b> steht auf dem Typenschild des Ventilators, im Datenblatt oder in der Gerätedoku. Achtung: Jeder Hersteller gibt an, mit welcher Formel sein K-Faktor gilt – im Zweifel im Datenblatt nachsehen.</li>
+            <li><b>Messstellen finden:</b> Am Ventilator gibt es einen Druckmessanschluss an der Einströmdüse (meist ein Schlauch / Messnippel am Düsenring) und eine Referenzmessung im Raum vor der Düse (Ansaugkammer). Bei vielen Geräten sind beide Schläuche schon nach außen geführt (+ / −).</li>
+            <li><b>Differenzdruckmessgerät anschließen:</b> „+“ an die Ansaugseite (vor der Düse), „−“ an den Düsenmessring. Gerät vorher nullen.</li>
+            <li><b>Anlage im Betriebszustand messen:</b> Türen der Kammern geschlossen, Filter eingebaut, gewünschte Drehzahl eingestellt. Wert einige Sekunden mitteln.</li>
+            <li><b>Werte oben eintragen</b> → Volumenstrom wird sofort berechnet.</li>
+          </ol>
+          <p class="muted">Faustregel: Doppelter Volumenstrom braucht den vierfachen Differenzdruck (Wurzelzusammenhang).</p>
+        </details>
+      </div>
+`],
+  ['kanal', '📐', 'Kanalrechner', 'Volumenstrom aus Kanalquerschnitt und Luftgeschwindigkeit', () => `
+      <div class="card">
+        <h2>Kanalrechner (Querschnitt × Geschwindigkeit)</h2>
+        <div class="grid">
+          <label class="f">Kanalform<select id="kform"><option value="r">Rechteckig</option><option value="o">Rund</option></select></label>
+          <label class="f" id="lb-a">Breite a [mm]<input id="ka" inputmode="decimal" placeholder="z. B. 600"></label>
+          <label class="f" id="lb-b">Höhe b [mm]<input id="kb" inputmode="decimal" placeholder="z. B. 400"></label>
+          <label class="f">Mittlere Luftgeschwindigkeit v [m/s]<input id="kv" inputmode="decimal" placeholder="z. B. 4,5"></label>
+        </div>
+        <div class="result"><small>Volumenstrom</small><div class="big" id="kanres">–<span>m³/h</span></div><small id="kanres2"></small></div>
+        <details class="help">
+          <summary>Anleitung: Netzmessung im Kanal</summary>
+          <ul>
+            <li>Messstelle möglichst in einer geraden Strecke wählen (Abstand zu Bögen / Abzweigen).</li>
+            <li>Mehrere Punkte über den Querschnitt messen (Netzmessung) und den Mittelwert bilden – eine Einzelmessung in der Mitte liefert zu hohe Werte.</li>
+            <li>Formel: V̇ [m³/h] = A [m²] · v [m/s] · 3600</li>
+          </ul>
+        </details>
+      </div>
+`],
+  ['luftwechsel', '🏢', 'Luftwechsel & Richtwerte', 'Raumarten nach DIN EN 16798-1, DIN 1946-7 und ASR A4.1', () => `
+      <div class="card">
+        <h2>Luftwechsel &amp; Richtwerte je Raumart</h2>
+        <div class="grid">
+          <label class="f">Länge [m]<input id="lw-l" inputmode="decimal" placeholder="z. B. 6"></label>
+          <label class="f">Breite [m]<input id="lw-b" inputmode="decimal" placeholder="z. B. 4,5"></label>
+          <label class="f">Raumhöhe [m]<input id="lw-h" inputmode="decimal" placeholder="z. B. 3"></label>
+          <label class="f">Raumart / Richtwert<select id="lw-art">
+            ${LW_ARTEN.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}
+          </select></label>
+          <label class="f" data-lw="frei">Luftwechsel n [1/h]<input id="lw-n" inputmode="decimal" placeholder="z. B. 4"></label>
+          <label class="f" data-lw="buero">Personen<input id="lw-p" inputmode="decimal" placeholder="z. B. 4"></label>
+          <label class="f" data-lw="buero">Kategorie (Raumluftqualität)<select id="lw-kat">
+            <option value="1">I – hohe Erwartung</option><option value="2" selected>II – normale Erwartung</option><option value="3">III – mäßige Erwartung</option>
+          </select></label>
+          <label class="f" data-lw="buero">Gebäude / Materialien<select id="lw-bel">
+            <option value="0">sehr schadstoffarm</option><option value="1" selected>schadstoffarm (Standard)</option><option value="2">nicht schadstoffarm</option>
+          </select></label>
+          <label class="f" data-lw="abzug">Anzahl Abzüge<input id="lw-anz" inputmode="decimal" placeholder="z. B. 2"></label>
+          <label class="f" data-lw="abzug">Abluft je Abzug [m³/h] laut Hersteller<input id="lw-abz" inputmode="decimal" placeholder="Typenschild / Datenblatt"></label>
+          <label class="f">Gemessener Volumenstrom [m³/h] (optional)<input id="lw-ist" inputmode="decimal" placeholder="z. B. aus Testo-Messung"></label>
+        </div>
+        <div class="result"><small id="lw-was">Volumenstrom</small><div class="big" id="lw-res">–<span>m³/h</span></div><small id="lw-info"></small></div>
+        <div class="lw-ist" id="lw-vergleich"></div>
+        <p class="muted" id="lw-quelle" style="margin-bottom:0"></p>
+        <details class="help">
+          <summary>Woher kommen die Werte?</summary>
+          <ul>
+            <li><b>Büro / Besprechung – DIN EN 16798-1:</b> Außenluft = Personen × q<sub>P</sub> + Fläche × q<sub>B</sub>. Kategorie II: 7 l/s je Person und 0,7 l/(s·m²) bei schadstoffarmem Gebäude (Kat. I: 10 / 1,0 – Kat. III: 4 / 0,4). Mindestens 4 l/s je Person.</li>
+            <li><b>Labor – DIN 1946-7:</b> Planungswert 25 m³/h je m² Laborfläche (bei 3 m Raumhöhe etwa 8-facher Luftwechsel).</li>
+            <li><b>Toiletten- und Waschräume – ASR A4.1:</b> Abluft 11 m³/h je m² Grundfläche.</li>
+            <li><b>Digestorien – DIN EN 14175:</b> kein fester Normwert; die Abluft richtet sich nach dem Abzug (Typenschild / Herstellerdatenblatt).</li>
+          </ul>
+          <p class="muted">Richtwerte zur Orientierung. Maßgeblich sind die Anlagenplanung und die jeweils gültige Fassung der Norm bzw. Regel.</p>
+        </details>
+      </div>
+`],
+];
+
 /* ---------- Seiten ---------- */
 const PAGES = {
   start() {
@@ -638,97 +733,15 @@ const PAGES = {
       </div>`;
   },
 
-  volumen() {
-    return `<h1>Volumenstromberechnung</h1>
-      <p class="lead">Volumenstrom über den K-Faktor der Ventilator-Einströmdüse oder über Kanalquerschnitt und Luftgeschwindigkeit.</p>
-
-      <div class="card accent">
-        <h2>K-Faktor-Methode (Wirkdruck an der Einströmdüse)</h2>
-        <div class="grid">
-          <label class="f">K-Faktor des Ventilators<input id="kf" inputmode="decimal" placeholder="z. B. 240"></label>
-          <label class="f">Gemessener Differenzdruck Δp [Pa]<input id="dp" inputmode="decimal" placeholder="z. B. 520"></label>
-          <label class="f">Formel laut Hersteller
-            <select id="kmode">
-              <option value="std">V̇ = k · √Δp  (Standard, z. B. ebm-papst, Ziehl-Abegg)</option>
-              <option value="rho">V̇ = k · √(2 · Δp / ρ)  (mit Luftdichte)</option>
-            </select></label>
-          <label class="f">Luftdichte ρ [kg/m³]<input id="rho" inputmode="decimal" value="1,2"></label>
-        </div>
-        <div class="result"><small>Volumenstrom</small><div class="big" id="kres">–<span>m³/h</span></div><small id="kres2"></small></div>
-
-        <h3 style="margin-top:18px">Umgekehrt: Welchen Δp brauche ich für meinen Soll-Volumenstrom?</h3>
-        <div class="grid">
-          <label class="f">Soll-Volumenstrom [m³/h]<input id="vsoll" inputmode="decimal" placeholder="z. B. 5000"></label>
-        </div>
-        <div class="result"><small>Soll-Differenzdruck</small><div class="big" id="dpres">–<span>Pa</span></div></div>
-
-        <details class="help">
-          <summary>Anleitung für Kollegen: So funktioniert die Messung</summary>
-          <ol>
-            <li><b>K-Faktor ablesen:</b> steht auf dem Typenschild des Ventilators, im Datenblatt oder in der Gerätedoku. Achtung: Jeder Hersteller gibt an, mit welcher Formel sein K-Faktor gilt – im Zweifel im Datenblatt nachsehen.</li>
-            <li><b>Messstellen finden:</b> Am Ventilator gibt es einen Druckmessanschluss an der Einströmdüse (meist ein Schlauch / Messnippel am Düsenring) und eine Referenzmessung im Raum vor der Düse (Ansaugkammer). Bei vielen Geräten sind beide Schläuche schon nach außen geführt (+ / −).</li>
-            <li><b>Differenzdruckmessgerät anschließen:</b> „+“ an die Ansaugseite (vor der Düse), „−“ an den Düsenmessring. Gerät vorher nullen.</li>
-            <li><b>Anlage im Betriebszustand messen:</b> Türen der Kammern geschlossen, Filter eingebaut, gewünschte Drehzahl eingestellt. Wert einige Sekunden mitteln.</li>
-            <li><b>Werte oben eintragen</b> → Volumenstrom wird sofort berechnet.</li>
-          </ol>
-          <p class="muted">Faustregel: Doppelter Volumenstrom braucht den vierfachen Differenzdruck (Wurzelzusammenhang).</p>
-        </details>
-      </div>
-
-      <div class="card">
-        <h2>Kanalrechner (Querschnitt × Geschwindigkeit)</h2>
-        <div class="grid">
-          <label class="f">Kanalform<select id="kform"><option value="r">Rechteckig</option><option value="o">Rund</option></select></label>
-          <label class="f" id="lb-a">Breite a [mm]<input id="ka" inputmode="decimal" placeholder="z. B. 600"></label>
-          <label class="f" id="lb-b">Höhe b [mm]<input id="kb" inputmode="decimal" placeholder="z. B. 400"></label>
-          <label class="f">Mittlere Luftgeschwindigkeit v [m/s]<input id="kv" inputmode="decimal" placeholder="z. B. 4,5"></label>
-        </div>
-        <div class="result"><small>Volumenstrom</small><div class="big" id="kanres">–<span>m³/h</span></div><small id="kanres2"></small></div>
-        <details class="help">
-          <summary>Anleitung: Netzmessung im Kanal</summary>
-          <ul>
-            <li>Messstelle möglichst in einer geraden Strecke wählen (Abstand zu Bögen / Abzweigen).</li>
-            <li>Mehrere Punkte über den Querschnitt messen (Netzmessung) und den Mittelwert bilden – eine Einzelmessung in der Mitte liefert zu hohe Werte.</li>
-            <li>Formel: V̇ [m³/h] = A [m²] · v [m/s] · 3600</li>
-          </ul>
-        </details>
-      </div>
-
-      <div class="card">
-        <h2>Luftwechsel &amp; Richtwerte je Raumart</h2>
-        <div class="grid">
-          <label class="f">Länge [m]<input id="lw-l" inputmode="decimal" placeholder="z. B. 6"></label>
-          <label class="f">Breite [m]<input id="lw-b" inputmode="decimal" placeholder="z. B. 4,5"></label>
-          <label class="f">Raumhöhe [m]<input id="lw-h" inputmode="decimal" placeholder="z. B. 3"></label>
-          <label class="f">Raumart / Richtwert<select id="lw-art">
-            ${LW_ARTEN.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}
-          </select></label>
-          <label class="f" data-lw="frei">Luftwechsel n [1/h]<input id="lw-n" inputmode="decimal" placeholder="z. B. 4"></label>
-          <label class="f" data-lw="buero">Personen<input id="lw-p" inputmode="decimal" placeholder="z. B. 4"></label>
-          <label class="f" data-lw="buero">Kategorie (Raumluftqualität)<select id="lw-kat">
-            <option value="1">I – hohe Erwartung</option><option value="2" selected>II – normale Erwartung</option><option value="3">III – mäßige Erwartung</option>
-          </select></label>
-          <label class="f" data-lw="buero">Gebäude / Materialien<select id="lw-bel">
-            <option value="0">sehr schadstoffarm</option><option value="1" selected>schadstoffarm (Standard)</option><option value="2">nicht schadstoffarm</option>
-          </select></label>
-          <label class="f" data-lw="abzug">Anzahl Abzüge<input id="lw-anz" inputmode="decimal" placeholder="z. B. 2"></label>
-          <label class="f" data-lw="abzug">Abluft je Abzug [m³/h] laut Hersteller<input id="lw-abz" inputmode="decimal" placeholder="Typenschild / Datenblatt"></label>
-          <label class="f">Gemessener Volumenstrom [m³/h] (optional)<input id="lw-ist" inputmode="decimal" placeholder="z. B. aus Testo-Messung"></label>
-        </div>
-        <div class="result"><small id="lw-was">Volumenstrom</small><div class="big" id="lw-res">–<span>m³/h</span></div><small id="lw-info"></small></div>
-        <div class="lw-ist" id="lw-vergleich"></div>
-        <p class="muted" id="lw-quelle" style="margin-bottom:0"></p>
-        <details class="help">
-          <summary>Woher kommen die Werte?</summary>
-          <ul>
-            <li><b>Büro / Besprechung – DIN EN 16798-1:</b> Außenluft = Personen × q<sub>P</sub> + Fläche × q<sub>B</sub>. Kategorie II: 7 l/s je Person und 0,7 l/(s·m²) bei schadstoffarmem Gebäude (Kat. I: 10 / 1,0 – Kat. III: 4 / 0,4). Mindestens 4 l/s je Person.</li>
-            <li><b>Labor – DIN 1946-7:</b> Planungswert 25 m³/h je m² Laborfläche (bei 3 m Raumhöhe etwa 8-facher Luftwechsel).</li>
-            <li><b>Toiletten- und Waschräume – ASR A4.1:</b> Abluft 11 m³/h je m² Grundfläche.</li>
-            <li><b>Digestorien – DIN EN 14175:</b> kein fester Normwert; die Abluft richtet sich nach dem Abzug (Typenschild / Herstellerdatenblatt).</li>
-          </ul>
-          <p class="muted">Richtwerte zur Orientierung. Maßgeblich sind die Anlagenplanung und die jeweils gültige Fassung der Norm bzw. Regel.</p>
-        </details>
-      </div>`;
+  volumen(sub) {
+    const teil = VOLUMEN_TEILE.find(([k]) => k === sub);
+    if (!teil) return `<h1>Volumenstrom</h1>
+      <p class="lead">Rechner rund um Luftmengen – Werkzeug antippen.</p>
+      <div class="tiles">${VOLUMEN_TEILE.map(([k, ic, t, txt]) =>
+        `<a class="tile" href="#volumen/${k}"><span class="ic">${ic}</span><b>${t}</b><small>${txt}</small></a>`).join('')}</div>`;
+    return `<div class="toolbar"><a class="btn ghost" href="#volumen">← Volumenstrom</a></div>
+      <h1>${teil[2]}</h1>
+${teil[4]()}`;
   },
 
   zugaenge() {
@@ -1733,7 +1746,7 @@ function route() {
     if (cur.rec && c.normalize) c.normalize(cur.rec);
     app.innerHTML = !cur.rec ? listPage(page) : c.editor ? c.editor(cur.rec) : editorPage(page, cur.rec);
   } else {
-    app.innerHTML = (PAGES[page] || PAGES.start)();
+    app.innerHTML = (PAGES[page] || PAGES.start)(id);
     if (page === 'volumen') calc();
     if (page === 'zugaenge') renderCodes();
   }
@@ -1784,6 +1797,11 @@ function calcLW() {
 }
 
 function calc() {
+  if ($('#kf')) calcK();
+  if ($('#kform')) calcKanal();
+  if ($('#lw-art')) calcLW();
+}
+function calcK() {
   const k = num($('#kf').value), dp = num($('#dp').value), rho = num($('#rho').value) || 1.2;
   const rhoMode = $('#kmode').value === 'rho';
   const f = x => rhoMode ? Math.sqrt(2 * x / rho) : Math.sqrt(x);
@@ -1793,7 +1811,8 @@ function calc() {
   const vs = num($('#vsoll').value);
   const dps = rhoMode ? Math.pow(vs / k, 2) * rho / 2 : Math.pow(vs / k, 2);
   $('#dpres').innerHTML = `${fmt(dps, 1)}<span>Pa</span>`;
-
+}
+function calcKanal() {
   const round = $('#kform').value === 'o';
   $('#lb-a').firstChild.textContent = round ? 'Durchmesser d [mm]' : 'Breite a [mm]';
   $('#lb-b').style.display = round ? 'none' : '';
@@ -1801,7 +1820,6 @@ function calc() {
   const A = round ? Math.PI * a * a / 4 : a * b;
   $('#kanres').innerHTML = `${fmt(A * vv * 3600)}<span>m³/h</span>`;
   $('#kanres2').textContent = isFinite(A) ? `Querschnitt A = ${fmt(A, 4)} m²` : '';
-  calcLW();
 }
 
 /* ---------- Zugänge ---------- */
